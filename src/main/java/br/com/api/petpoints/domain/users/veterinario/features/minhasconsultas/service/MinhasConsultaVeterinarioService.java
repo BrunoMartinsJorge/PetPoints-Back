@@ -18,5 +18,5 @@ public interface MinhasConsultaVeterinarioService {
     List<ProdutoCobrancaDto> listarProdutosParaCobranca();
     void iniciarConsulta(Long idUsuario, Long idConsulta);
     void finalizarConsulta(Long idUsuario, Long idConsulta, FinalizarConsultaForm form);
-    Object gerarPrescricao(Long idUsuario, PrescricaoForm form);
+    byte[] gerarPrescricao(Long idUsuario, PrescricaoForm form);
 }

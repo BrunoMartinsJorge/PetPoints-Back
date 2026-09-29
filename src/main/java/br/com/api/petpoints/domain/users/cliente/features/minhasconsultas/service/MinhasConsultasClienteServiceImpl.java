@@ -369,7 +369,7 @@ public class MinhasConsultasClienteServiceImpl implements MinhasConsultasCliente
                 this.consultaRepository
                         .findAllByVeterinario_Id(form.getIdVeterinario())
                         .stream()
-                        .filter(consulta -> consulta.getDataConsulta().toLocalDate().equals(dataSolicitada.toLocalDate()) && consulta.getDataConsulta().isAfter(dataSolicitada.minusHours(1)) && consulta.getDataConsulta().isBefore(dataSolicitada.plusHours(1))
+                        .filter(consulta -> consulta.getStatus() != StatusConsultaEnum.CANCELADO && consulta.getStatus() != StatusConsultaEnum.REPROVADA && consulta.getDataConsulta().toLocalDate().equals(dataSolicitada.toLocalDate()) && consulta.getDataConsulta().isAfter(dataSolicitada.minusHours(1)) && consulta.getDataConsulta().isBefore(dataSolicitada.plusHours(1))
                         )
                         .toList();
         if (!consultasDoVeterinario.isEmpty()) throw new RuntimeException("Já existe uma consulta nesse periodo!");

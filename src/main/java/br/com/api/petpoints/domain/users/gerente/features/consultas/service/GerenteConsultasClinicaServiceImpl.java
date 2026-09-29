@@ -211,7 +211,7 @@ public class GerenteConsultasClinicaServiceImpl implements GerenteConsultasClini
 
     @Override
     @Transactional
-    public void adicionarNovoVeteterinarioEspecializacao(Long idEspecializacao, Long idVeterinario) {
+    public void adicionarNovoVeterinarioEspecializacao(Long idEspecializacao, Long idVeterinario) {
         UsuarioModel usuario = this.getUsuarioPorId(idVeterinario);
         EspecializacaoModel especializacao = this.getEspecializacaoPorId(idEspecializacao);
         especializacao.getVeterinarios().add(usuario);
@@ -220,11 +220,45 @@ public class GerenteConsultasClinicaServiceImpl implements GerenteConsultasClini
 
     @Override
     @Transactional
-    public void removerVeteterinarioEspecializacao(Long idEspecializacao, Long idVeterinario) {
+    public void removerVeterinarioEspecializacao(Long idEspecializacao, Long idVeterinario) {
         EspecializacaoModel especializacao = this.getEspecializacaoPorId(idEspecializacao);
         Set<UsuarioModel> veterinarios = especializacao.getVeterinarios();
         veterinarios = veterinarios.stream().filter(veterinario -> !Objects.equals(veterinario.getId(), idVeterinario)).collect(Collectors.toSet());
         especializacao.setVeterinarios(veterinarios);
         this.especializacaoRepository.saveAndFlush(especializacao);
+    }
+
+    @Override
+    @Transactional
+    public void editarInformacoesEspecializacao(Long idUsuario, EspecializacaoForm form, Long idEspecializacao) {
+        EspecializacaoModel especializacao = this.getEspecializacaoPorId(idEspecializacao);
+        if (!form.getDescricao().isEmpty() && !form.getDescricao().equals(especializacao.getDescricao())) {
+            especializacao.setDescricao(form.getDescricao());
+        }
+        this.especializacaoRepository.save(especializacao);
+        this.logsService.registrarLog(this.getUsuarioPorId(idUsuario), TipoLogEnum.EDITOU_ESPECIALIZACAO);
+    }
+
+    @Override
+    @Transactional
+    public void excluirEspecializacao(Long idUsuario, Long idEspecializacao) {
+        EspecializacaoModel especializacao = this.getEspecializacaoPorId(idEspecializacao);
+        especializacao.getVeterinarios().clear();
+        this.especializacaoRepository.saveAndFlush(especializacao);
+        this.especializacaoRepository.delete(especializacao);
+        this.logsService.registrarLog(this.getUsuarioPorId(idUsuario), TipoLogEnum.EXCLUIU_ESPECIALIZACAO);
+    }
+
+    @Override
+    @Transactional
+    public void excluirTipoConsulta(Long idUsuario, Long idTipoConsulta) {
+        TipoConsultaModel tipoConsulta = this.getTipoConsultaPorId(idTipoConsulta);
+        if (this.consultaRepository.existsByTipoConsulta_Id(idTipoConsulta)) {
+            throw new IllegalStateException("Não é possível excluir o tipo de consulta pois existem consultas vinculadas!");
+        }
+        tipoConsulta.getVeterinarios().clear();
+        this.tipoConsultaRepository.saveAndFlush(tipoConsulta);
+        this.tipoConsultaRepository.delete(tipoConsulta);
+        this.logsService.registrarLog(this.getUsuarioPorId(idUsuario), TipoLogEnum.EXCLUIU_TIPO_CONSULTA);
     }
 }

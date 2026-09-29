@@ -57,6 +57,8 @@ public interface ConsultaRepository extends JpaRepository<ConsultaModel, Long> {
     @Query("SELECT u FROM ConsultaModel u WHERE u.pet.id = ?1 and u.status = 'PENDENTE' or u.status = 'INICIADO'")
     List<ConsultaModel> buscarConsultasPendenteOuIniciadas(Long idPet);
 
+    boolean existsByTipoConsulta_Id(Long idTipoConsulta);
+
     @Query("SELECT h FROM ConsultaModel h WHERE h.status = 'FINALIZADO' AND h.avaliacao IS NOT NULL")
     List<ConsultaModel> buscarAvaliacoesFinalizadas();
 }

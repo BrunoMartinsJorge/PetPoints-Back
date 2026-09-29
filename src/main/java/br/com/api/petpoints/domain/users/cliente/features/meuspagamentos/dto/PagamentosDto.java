@@ -25,6 +25,7 @@ public class PagamentosDto {
     private String dataLimitePagamento;
     private StatusPagamentoEnum statusPagamento;
     private TipoPagamentoEnum tipoPagamento;
+    private String motivoIndeferimento;
     private boolean atrasado;
 
     public PagamentosDto(ConsultaModel consulta) {
@@ -34,6 +35,7 @@ public class PagamentosDto {
         this.dataLimitePagamento = LocalDateTimeUtils.converterLocalDateTimeParaPtBr(consulta.getPagamento().getDataPagamento());
         this.statusPagamento = consulta.getPagamento().getStatusPagamento();
         this.tipoPagamento = consulta.getPagamento().getTipoPagamento();
+        this.motivoIndeferimento = consulta.getPagamento().getMotivoIndeferimento();
         this.atrasado = consulta.getPagamento() != null && consulta.getPagamento().getDataPagamento() != null && !consulta.getPagamento().getStatusPagamento().equals(StatusPagamentoEnum.ENVIADO) && !consulta.getPagamento().getStatusPagamento().equals(StatusPagamentoEnum.APROVADO) && consulta.getPagamento().getDataPagamento().isBefore(LocalDateTime.now());
     }
 
