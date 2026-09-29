@@ -493,4 +493,114 @@ public class GerenteConsultasClinicaController {
 
         return ResponseEntity.ok().build();
     }
+
+    @PutMapping("/editar-informacoes-especializacao/{idEspecializacao}")
+    @Operation(
+            summary = "Editar especialização",
+            description = "Atualiza as informações de uma especialização existente."
+    )
+    @ApiResponse(
+            responseCode = "200",
+            description = "Especialização atualizada com sucesso."
+    )
+    @ApiResponse(
+            responseCode = "404",
+            description = "Especialização não encontrada."
+    )
+    public ResponseEntity<Void> editarEspecializacao(
+            HttpServletRequest request,
+
+            @Parameter(
+                    description = "Identificador da especialização.",
+                    example = "1"
+            )
+            @PathVariable Long idEspecializacao,
+
+            @RequestBody @Valid EspecializacaoForm form
+    ) {
+        TokenModel token = new TokenModel(
+                request.getHeader("Authorization")
+        );
+
+        gerenteConsultasClinicaService.editarInformacoesEspecializacao(
+                token.getIdUsuario(),
+                form,
+                idEspecializacao
+        );
+
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/especializacoes/{idEspecializacao}")
+    @Operation(
+            summary = "Excluir especialização",
+            description = "Remove uma especialização do sistema."
+    )
+    @ApiResponse(
+            responseCode = "200",
+            description = "Especialização excluída com sucesso."
+    )
+    @ApiResponse(
+            responseCode = "404",
+            description = "Especialização não encontrada."
+    )
+    public ResponseEntity<Void> excluirEspecializacao(
+            HttpServletRequest request,
+
+            @Parameter(
+                    description = "Identificador da especialização.",
+                    example = "1"
+            )
+            @PathVariable Long idEspecializacao
+    ) {
+        TokenModel token = new TokenModel(
+                request.getHeader("Authorization")
+        );
+
+        gerenteConsultasClinicaService.excluirEspecializacao(
+                token.getIdUsuario(),
+                idEspecializacao
+        );
+
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/tipos-consulta/{idTipoConsulta}")
+    @Operation(
+            summary = "Excluir tipo de consulta",
+            description = "Remove um tipo de consulta do sistema. "
+                    + "Não é possível excluir se existirem consultas vinculadas."
+    )
+    @ApiResponse(
+            responseCode = "200",
+            description = "Tipo de consulta excluído com sucesso."
+    )
+    @ApiResponse(
+            responseCode = "400",
+            description = "Existem consultas vinculadas ao tipo de consulta."
+    )
+    @ApiResponse(
+            responseCode = "404",
+            description = "Tipo de consulta não encontrado."
+    )
+    public ResponseEntity<Void> excluirTipoConsulta(
+            HttpServletRequest request,
+
+            @Parameter(
+                    description = "Identificador do tipo de consulta.",
+                    example = "1"
+            )
+            @PathVariable Long idTipoConsulta
+    ) {
+        TokenModel token = new TokenModel(
+                request.getHeader("Authorization")
+        );
+
+        gerenteConsultasClinicaService.excluirTipoConsulta(
+                token.getIdUsuario(),
+                idTipoConsulta
+        );
+
+        return ResponseEntity.ok().build();
+    }
 }

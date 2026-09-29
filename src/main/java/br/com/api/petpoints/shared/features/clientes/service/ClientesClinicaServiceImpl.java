@@ -68,9 +68,8 @@ public class ClientesClinicaServiceImpl implements ClientesClinicaService {
     }
 
     @Override
-    public byte[] gerarRelatorio(RelatorioClienteClinicaForm form) {
+    public byte[] gerarRelatorio(RelatorioClienteClinicaForm form, String titulo) {
         List<UsuarioModel> pets = this.filtrarClientes(form);
-        String titulo = "Relatório de Pets da Clínica";
         List<ColunaRelatorio> colunas = List.of(
                 new ColunaRelatorio("ID", m -> ((UsuarioModel) m).getId()),
                 new ColunaRelatorio("Nome", m -> ((UsuarioModel) m).getNome()),

@@ -97,7 +97,7 @@ public class PagamentoService {
         pagamento.setIdPagamentoExterno(order.id());
         pagamento.setTipoPagamento(TipoPagamentoEnum.PIX);
         pagamento.setStatusPagamento(mapearStatus(order.status()));
-        pagamento.setDataLimitePagamento(LocalDateTime.now().plusWeeks(1));
+        pagamento.gerarDataLimitePagamento();
         pagamento.setDataPagamento(null);
         pagamento.setMotivoIndeferimento(null);
         pagamento.setAprovadoPor(null);
@@ -161,6 +161,7 @@ public class PagamentoService {
         pagamento.setMotivoIndeferimento(null);
         pagamento.setAprovadoPor(null);
         pagamento.setEmitidoPor(emitidoPor);
+        pagamento.gerarDataLimitePagamento();
 
         return pagamentoRepository.save(pagamento);
     }
@@ -571,6 +572,8 @@ public class PagamentoService {
 
         pagamentoRepository.findByIdPagamentoExterno(session.getId())
                 .ifPresentOrElse(pagamento -> {
+                    log.info("[STRIPE] Pagamento ID: {} - Tipo: {}", pagamento.getId(), pagamento.getTipoPagamento());
+                    log.info("[STRIPE] Pagamento Status: {} - Novo: {}", pagamento.getStatusPagamento(), session.getPaymentStatus());
                     StatusPagamentoEnum statusAnterior = pagamento.getStatusPagamento();
 
                     StatusPagamentoEnum novoStatus;

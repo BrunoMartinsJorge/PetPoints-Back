@@ -26,4 +26,7 @@ public interface GerenteConsultasClinicaService {
     byte[] gerarRelatorioConsultas(FiltroConsultaForm form);
     void adicionarNovoVeterinarioEspecializacao(Long idEspecializacao, Long idVeterinario);
     void removerVeterinarioEspecializacao(Long idEspecializacao, Long idVeterinario);
+    void editarInformacoesEspecializacao(Long idUsuario, EspecializacaoForm form, Long idEspecializacao);
+    void excluirEspecializacao(Long idUsuario, Long idEspecializacao);
+    void excluirTipoConsulta(Long idUsuario, Long idTipoConsulta);
 }

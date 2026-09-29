@@ -74,4 +74,10 @@ public class PagamentoModel {
     public int hashCode() {
         return getClass().hashCode();
     }
+
+    public void gerarDataLimitePagamento() {
+        LocalDateTime dataLimitePagamento = LocalDateTime.now();
+        dataLimitePagamento = dataLimitePagamento.plusWeeks(2).withHour(0).withMinute(0).withSecond(0);
+        this.setDataLimitePagamento(dataLimitePagamento);
+    }
 }

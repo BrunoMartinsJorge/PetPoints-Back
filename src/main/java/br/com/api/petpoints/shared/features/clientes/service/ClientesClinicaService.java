@@ -14,6 +14,6 @@ public interface ClientesClinicaService {
     ClientesDetalhesDto buscarDetalhesCliente(Long idCliente);
     List<HistoricoConsultasClienteDto> historicoConsultasCliente(Long idCliente);
     List<PetsClienteDto> listarPetsCliente(Long idCliente);
-    byte[] gerarRelatorio(RelatorioClienteClinicaForm form);
+    byte[] gerarRelatorio(RelatorioClienteClinicaForm form, String titulo);
     void registrarCliente(Long idUsuario, RegistroForm form);
 }

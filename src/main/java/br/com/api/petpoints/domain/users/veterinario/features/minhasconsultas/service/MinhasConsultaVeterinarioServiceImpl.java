@@ -4,6 +4,7 @@ import br.com.api.petpoints.domain.auth.exception.UsuarioNaoEncontrado;
 import br.com.api.petpoints.domain.users.veterinario.features.minhasconsultas.dto.*;
 import br.com.api.petpoints.domain.users.veterinario.features.minhasconsultas.forms.FinalizarConsultaForm;
 import br.com.api.petpoints.domain.users.veterinario.features.minhasconsultas.forms.ItemCobrancaForm;
+import br.com.api.petpoints.domain.users.veterinario.features.minhasconsultas.forms.ItemPrescricaoForm;
 import br.com.api.petpoints.domain.users.veterinario.features.minhasconsultas.forms.PrescricaoForm;
 import br.com.api.petpoints.shared.enums.StatusConsultaEnum;
 import br.com.api.petpoints.shared.enums.TipoLogEnum;
@@ -234,11 +235,7 @@ public class MinhasConsultaVeterinarioServiceImpl implements MinhasConsultaVeter
     protected PagamentoModel gerarPagamentoCartao(ConsultaModel consulta, BigDecimal valor) {
         PagamentoModel pagamento = new PagamentoModel();
         pagamento.setValorPagamento(valor);
-        pagamento.setDataLimitePagamento(
-                LocalDateTime.now()
-                        .plusWeeks(1)
-                        .with(LocalTime.MAX)
-        );
+        pagamento.gerarDataLimitePagamento();
         pagamento.setEmitidoPor(consulta.getSolicitante());
         pagamento.setTipoPagamento(TipoPagamentoEnum.CARTAO);
         return this.pagamentoRepository.save(pagamento);
@@ -302,24 +299,27 @@ public class MinhasConsultaVeterinarioServiceImpl implements MinhasConsultaVeter
     }
 
     @Override
+    @Transactional
     public byte[] gerarPrescricao(Long idUsuario, PrescricaoForm form) {
         UsuarioModel veterinario = this.getUsuarioPorId(idUsuario);
         ConsultaModel consulta = this.getConsultaPorId(form.getIdConsulta());
         if (!veterinario.equals(consulta.getVeterinario()))
-            throw new IllegalAccessException("Você não é o responsável por está consulta!");
+            throw new IllegalAccessException("Você não é o responsável por esta consulta!");
+        List<ItemPrescricaoForm> itensReceitados = form.getItens() == null ? new ArrayList<>() : form.getItens();
+        Map<Long, ProdutoModel> produtosReceitados = this.buscarProdutosReceitados(itensReceitados);
         PrescricaoModel prescricao = new PrescricaoModel();
         prescricao.setConsulta(consulta);
-        prescricao.setItens(
-                this.produtosUtilizadosConsulta(consulta)
-        );
+        prescricao.setItens(new ArrayList<>(produtosReceitados.values()));
         prescricao.setOrientacoesGerais(form.getObservacoes());
         prescricao = this.prescricaoRepository.save(prescricao);
-        return this.gerarPdfPrescricao(prescricao, form, veterinario, consulta);
+        return this.gerarPdfPrescricao(prescricao, form, veterinario, consulta, produtosReceitados);
     }
 
-    private byte[] gerarPdfPrescricao(PrescricaoModel prescricao, PrescricaoForm form, UsuarioModel veterinario, ConsultaModel consulta) {
+    private byte[] gerarPdfPrescricao(PrescricaoModel prescricao, PrescricaoForm form, UsuarioModel veterinario, ConsultaModel consulta,
+                                      Map<Long, ProdutoModel> produtosReceitados) {
         PrescrisaoDto dadosPrescricao = new PrescrisaoDto(prescricao, veterinario, consulta.getSolicitante(), consulta.getPet(), form.getDiagnostico(), this.local,
                 LocalDateTimeUtils.converterLocalDateTimeParaPtBr(form.getRetorno()), "+55 (018) 99631-3182");
+        dadosPrescricao.setItens(this.montarItensPrescricao(form.getItens(), produtosReceitados));
         Context context = new Context();
         context.setVariable("prescricao", dadosPrescricao);
         context.setVariable("logoBase64", carregarLogoBase64());
@@ -332,10 +332,48 @@ public class MinhasConsultaVeterinarioServiceImpl implements MinhasConsultaVeter
         return RelatoriosUtils.getBytes(html);
     }
 
-    private List<ProdutoModel> produtosUtilizadosConsulta(ConsultaModel consulta) {
-        List<Long> idsProdutos = consulta.getItensCobranca().stream().map(ItemConsultaModel::getId).toList();
-        if (idsProdutos.isEmpty()) return new ArrayList<>();
-        return this.produtoRepository.findAllByIdIn(idsProdutos);
+    /**
+     * Carrega os produtos receitados preservando a ordem informada pelo veterinário.
+     */
+    private Map<Long, ProdutoModel> buscarProdutosReceitados(List<ItemPrescricaoForm> itens) {
+        List<Long> idsProdutos = itens.stream().map(ItemPrescricaoForm::getId).filter(Objects::nonNull).distinct().toList();
+        if (idsProdutos.isEmpty()) return new LinkedHashMap<>();
+        Map<Long, ProdutoModel> encontrados = new LinkedHashMap<>();
+        this.produtoRepository.findAllByIdIn(idsProdutos).forEach(produto -> encontrados.put(produto.getId(), produto));
+        Map<Long, ProdutoModel> produtosReceitados = new LinkedHashMap<>();
+        for (Long idProduto : idsProdutos) {
+            ProdutoModel produto = encontrados.get(idProduto);
+            if (produto == null)
+                throw new ObjectNotFoundException("Produto com ID: " + idProduto + " não encontrado!");
+            produtosReceitados.put(idProduto, produto);
+        }
+        return produtosReceitados;
+    }
+
+    private List<ProdutoPrescricaoDto> montarItensPrescricao(List<ItemPrescricaoForm> itens, Map<Long, ProdutoModel> produtosReceitados) {
+        if (itens == null) return new ArrayList<>();
+        return itens.stream()
+                .filter(item -> item.getId() != null)
+                .map(item -> {
+                    ProdutoModel produto = produtosReceitados.get(item.getId());
+                    return new ProdutoPrescricaoDto(
+                            textoPrescricao(produto.getNome()),
+                            textoPrescricao(produto.getDescricao()),
+                            textoPrescricao(item.getDose()),
+                            textoPrescricao(item.getVia()),
+                            textoPrescricao(item.getIntervalo()),
+                            textoPrescricao(item.getDuracao())
+                    );
+                })
+                .toList();
+    }
+
+    /**
+     * O template concatena os campos do item, então valores vazios viram um traço
+     * para não imprimir "null" na receita.
+     */
+    private static String textoPrescricao(String valor) {
+        return valor == null || valor.isBlank() ? "-" : valor.trim();
     }
 
     private String carregarLogoBase64() {

@@ -58,7 +58,7 @@ public class ClientesClinicaController {
 
     @PostMapping("/relatorios")
     public ResponseEntity<byte[]> gerarRelatorioClientesClinica(@RequestBody RelatorioClienteClinicaForm form) {
-        byte[] pdf = this.clientesClinicaService.gerarRelatorio(form);
+        byte[] pdf = this.clientesClinicaService.gerarRelatorio(form, "Relatório de Clientes da Clínica");
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=RelatorioGenerico.pdf")
                 .contentType(MediaType.APPLICATION_PDF)

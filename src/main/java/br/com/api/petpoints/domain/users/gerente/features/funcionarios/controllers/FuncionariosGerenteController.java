@@ -55,7 +55,7 @@ public class FuncionariosGerenteController {
                                                             @RequestParam String telefone,
                                                             @RequestParam TipoUsuario permissao,
                                                             @RequestParam LocalDate dataNascimento,
-                                                            @RequestParam String crmv,
+                                                            @RequestParam(required = false) String crmv,
                                                             @RequestParam(required = false) MultipartFile foto) {
         EditarFuncionarioForm form = new EditarFuncionarioForm(nome, genero, email, telefone, permissao, dataNascimento, crmv);
         return ResponseEntity.ok().body(this.funcionariosGerenteService.atualizarFuncionario(form, id, foto));

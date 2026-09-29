@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Getter
@@ -16,7 +17,7 @@ import java.util.UUID;
 @NoArgsConstructor
 public class InformacoesUsuarioDto {
     private String nome;
-    private String dataNascimento;
+    private LocalDate dataNascimento;
     private GeneroEnum genero;
     private String email;
     private String telefone;
@@ -25,7 +26,7 @@ public class InformacoesUsuarioDto {
 
     public InformacoesUsuarioDto(UsuarioModel usuario) {
         this.nome = usuario.getNome();
-        this.dataNascimento = LocalDateUtils.converterLocalDateParaPtBr(usuario.getDataNascimento());
+        this.dataNascimento = usuario.getDataNascimento();
         this.genero = usuario.getGenero();
         this.email = usuario.getEmail();
         this.telefone = usuario.getTelefone();
