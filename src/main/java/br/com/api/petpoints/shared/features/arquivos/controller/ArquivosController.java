@@ -34,7 +34,7 @@ public class ArquivosController {
     @GetMapping("/usuario/{idUsuario}")
     public ResponseEntity<byte[]> buscarArquivoPorUsuario(@PathVariable Long idUsuario) {
         ArquivosModel arquivo = this.arquivosService.buscarArquivoPorIdUsuario(idUsuario);
-        if (arquivo == null) return ResponseEntity.notFound().build();
+        if (arquivo == null) return ResponseEntity.ok().build();
         return ResponseEntity.ok()
                 .contentType(MediaType.valueOf(arquivo.getTipo()))
                 .body(arquivo.getConteudo());

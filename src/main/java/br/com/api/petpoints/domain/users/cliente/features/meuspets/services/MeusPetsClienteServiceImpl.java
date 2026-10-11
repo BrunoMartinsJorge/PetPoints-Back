@@ -31,10 +31,7 @@ import org.thymeleaf.spring6.SpringTemplateEngine;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.Base64;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -99,30 +96,55 @@ public class MeusPetsClienteServiceImpl implements MeusPetsClienteService {
 
     @Override
     @Transactional
-    public void editarPet(Long idPet, Long idCliente, EditarPetForm form, MultipartFile arquivo) {
+    public void editarPet(
+            Long idPet,
+            Long idCliente,
+            EditarPetForm form,
+            MultipartFile arquivo
+    ) {
         PetModel pet = this.getPetPorId(idPet);
         UsuarioModel cliente = this.getUsuarioPorId(idCliente);
-        if (!pet.getTutor().equals(cliente)) throw new RuntimeException("Você não é o tutor do pet!");
-        if (!pet.getNome().equals(form.getNome()))
+
+        if (!Objects.equals(pet.getTutor(), cliente)) {
+            throw new RuntimeException("Você não é o tutor do pet!");
+        }
+
+        if (form.getNome() != null && !Objects.equals(pet.getNome(), form.getNome())) {
             pet.setNome(form.getNome());
-        if (!pet.getRaca().equals(form.getRaca()))
+        }
+
+        if (form.getRaca() != null && !Objects.equals(pet.getRaca(), form.getRaca())) {
             pet.setRaca(form.getRaca());
-        if (!pet.getObservacoes().equals(form.getObservacoes()))
+        }
+
+        if (form.getObservacoes() != null && !Objects.equals(pet.getObservacoes(), form.getObservacoes())) {
             pet.setObservacoes(form.getObservacoes());
-        if (!pet.getTipo().equals(form.getTipoAnimal()))
+        }
+
+        if (form.getTipoAnimal() != null && !Objects.equals(pet.getTipo(), form.getTipoAnimal())) {
             pet.setTipo(form.getTipoAnimal());
-        if (!pet.getGenero().equals(form.getGenero()))
+        }
+
+        if (form.getGenero() != null && !Objects.equals(pet.getGenero(), form.getGenero())) {
             pet.setGenero(form.getGenero());
-        if (!pet.getDataNascimento().equals(form.getDataNascimento()) && form.getDataNascimento() != null)
+        }
+
+        if (form.getDataNascimento() != null
+                && !Objects.equals(pet.getDataNascimento(), form.getDataNascimento())) {
             pet.setDataNascimento(form.getDataNascimento());
+        }
+
         if (arquivo != null && !arquivo.isEmpty()) {
             UUID imagemAntiga = pet.getImagem();
             UUID novaImagem = this.salvarArquivo(arquivo);
+
             pet.setImagem(novaImagem);
+
             if (imagemAntiga != null) {
                 this.arquivoRepository.deleteById(imagemAntiga);
             }
         }
+
         this.petRepository.save(pet);
     }
 

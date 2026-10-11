@@ -94,7 +94,6 @@ public class StripeService {
         }
     }
 
-    /** Valida a assinatura e devolve o evento já desserializado. Uma linha, feita certo. */
     public Event validarExtrairEvento(String payloadCru, String sigHeader) {
         try {
             return Webhook.constructEvent(payloadCru, sigHeader, properties.getWebhookSecret());
