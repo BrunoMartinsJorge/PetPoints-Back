@@ -524,7 +524,6 @@ public class PagamentoService {
         PagamentoModel pagamento = pagamentoRepository.findById(pagamentoId)
                 .orElseThrow(() -> new EntityNotFoundException("Pagamento não encontrado: " + pagamentoId));
 
-        // trava: não gera checkout de algo já aprovado
         if (pagamento.getStatusPagamento() == StatusPagamentoEnum.APROVADO) {
             throw new IllegalStateException("Este pagamento já foi aprovado.");
         }
@@ -533,20 +532,20 @@ public class PagamentoService {
                 .movePointRight(2).setScale(0, RoundingMode.HALF_UP).longValueExact();
 
         String descricao = "Pet Points - pagamento #" + pagamento.getId();
-        String email = solicitante.getEmail(); // opcional: solicitante.getEmail(), se existir no seu model
+        String email = solicitante.getEmail();
 
         Session session = stripeService.criarCheckoutSession(
                 centavos, "brl", descricao,
-                String.valueOf(pagamento.getId()),   // client_reference_id
+                String.valueOf(pagamento.getId()),
                 email);
 
-        pagamento.setIdPagamentoExterno(session.getId());   // cs_...
+        pagamento.setIdPagamentoExterno(session.getId());
         pagamento.setTipoPagamento(TipoPagamentoEnum.CARTAO);
         pagamento.setStatusPagamento(StatusPagamentoEnum.PENDENTE);
-        pagamento.setDataLimitePagamento(LocalDateTime.now().plusHours(24)); // sessão expira ~24h por padrão
+        pagamento.setDataLimitePagamento(LocalDateTime.now().plusHours(24));
         pagamentoRepository.save(pagamento);
 
-        return session.getUrl(); // é pra cá que o front redireciona
+        return session.getUrl();
     }
 
     @Transactional
