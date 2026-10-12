@@ -77,7 +77,7 @@ public class UsuarioServiceImpl implements UsuarioService {
         if (usuarioRepository.existsByEmailOrCpf(registroForm.getEmail(), registroForm.getCpf()))
             throw new UsuarioJaCadastrado("Usuário já cadastrado!");
         UsuarioModel usuario = new UsuarioModel(registroForm, TipoUsuario.C, passwordEncoder.encode(registroForm.getSenha()));
-        if (!arquivo.isEmpty())
+        if (arquivo != null && !arquivo.isEmpty())
             usuario.setImagem(this.salvarArquivo(arquivo));
         usuario = usuarioRepository.save(usuario);
         return new TokenDto(

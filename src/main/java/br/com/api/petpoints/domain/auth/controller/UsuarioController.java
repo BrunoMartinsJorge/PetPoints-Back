@@ -22,7 +22,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/autenticacao")
 @RequiredArgsConstructor
-@Tag(name = "Usuário Autenticação Controller", description = "Endpoints para Registrar Clientes, Logar Clientes e Registrar uma nova senha ao usuário") // Groups endpoints
+@Tag(name = "Usuário Autenticação Controller", description = "Endpoints para Registrar Clientes, Logar Clientes e Registrar uma nova senha ao usuário")
 public class UsuarioController {
 
     private final UsuarioServiceImpl usuarioService;

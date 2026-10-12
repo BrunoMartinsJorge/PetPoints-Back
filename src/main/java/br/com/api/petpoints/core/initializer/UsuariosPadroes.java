@@ -47,73 +47,24 @@ public class UsuariosPadroes implements CommandLineRunner {
 
         criados.put("gerente", salvarUsuario(
                 "Bruno Martins Jorge", "gerente@gmail.com",
-                GeneroEnum.M, "2006-06-12", "18996313182", "48250377044", TipoUsuario.G));
+                "2006-06-12", "18996313182", "48250377044", TipoUsuario.G));
 
         criados.put("veterinario", salvarUsuario(
-                "Carlos Eduardo Zaul", "usuario@gmail.com",
-                GeneroEnum.M, "2005-08-21", "18996413456", "22307089020", TipoUsuario.V));
+                "Carlos Eduardo Zaul", "veterinario@gmail.com",
+                "2005-08-21", "18996413456", "22307089020", TipoUsuario.V));
 
         criados.put("atendente", salvarUsuario(
                 "Arthur Moura Rieger", "atendente@gmail.com",
-                GeneroEnum.M, "2006-11-26", "18996312459", "28449414008", TipoUsuario.A));
-
-        criados.put("cliente", salvarUsuario(
-                "Marizinha", "rexon300008@gmail.com",
-                GeneroEnum.F, "1980-10-16", "18996738459", "57700774846", TipoUsuario.C));
-
-        pet(criados.get("cliente"));
-
-        criados.put("cliente_pagamento", salvarUsuario(
-                "Cliente Teste Pagamento", "test_user_1724857044@testuser.com",
-                GeneroEnum.F, "1980-10-16", "18996738459", "19119119100", TipoUsuario.C));
-
-        pet(criados.get("cliente_pagamento"));
+                "2006-11-26", "18996312459", "28449414008", TipoUsuario.A));
 
         criados.put("estoquista", salvarUsuario(
                 "Yann", "estoquista@gmail.com",
-                GeneroEnum.M, "2002-01-06", "18996897425", "24711763058", TipoUsuario.E));
-
-        // Alguns usuários extras para dar volume aos dados
-        criados.put("veterinario2", salvarUsuario(
-                "Fernanda Lima Costa", "veterinario2@gmail.com",
-                GeneroEnum.F, "1990-03-14", "18996111222", "39053344705", TipoUsuario.V));
-
-        criados.put("cliente2", salvarUsuario(
-                "João Pereira Alves", "cliente2@gmail.com",
-                GeneroEnum.M, "1995-07-02", "18996333444", "45317828791", TipoUsuario.C));
+                "2002-01-06", "18996897425", "24711763058", TipoUsuario.E));
 
         return criados;
     }
 
-    @Transactional
-    protected void mockarConsulta(UsuarioModel cliente, UsuarioModel atendente, UsuarioModel veterinario, TipoConsultaModel tipo) {
-        ConsultaModel consulta = new ConsultaModel();
-        consulta.setDataConsulta(LocalDateTime.now().minusDays(1));
-        consulta.setVeterinario(veterinario);
-        consulta.setTipoConsulta(tipo);
-        PetModel pet = this.petRepository.findAllByTutor_Id(cliente.getId()).getFirst();
-        consulta.setPet(pet);
-        consulta.setStatus(StatusConsultaEnum.FINALIZADO);
-        consulta.setSolicitante(cliente);
-        consulta.setIniciadoEm(LocalDateTime.now().minusHours(1));
-        consulta.setFinalizadoEm(LocalDateTime.now().minusMinutes(21));
-        consulta.setResumoConsulta("Tudo normal com o paciente!");
-        consulta.setAtendente(atendente);
-        consulta.setSolicitadoEm(LocalDateTime.now().minusDays(2));
-        consulta.setFormaPagamento(TipoPagamentoEnum.DINHEIRO);
-        PagamentoModel pagamento = new PagamentoModel();
-        pagamento.setStatusPagamento(StatusPagamentoEnum.APROVADO);
-        pagamento.setValorPagamento(BigDecimal.valueOf(tipo.getValor()));
-        pagamento.setDataPagamento(LocalDateTime.now());
-        pagamento.setEmitidoPor(cliente);
-        pagamento.setAprovadoPor(atendente);
-        pagamento.setDataAtualizacao(LocalDateTime.now());
-        pagamento.setTipoPagamento(TipoPagamentoEnum.DINHEIRO);
-        consulta.setPagamento(this.pagamentoRepository.save(pagamento));
-        this.consultaRepository.save(consulta);
-    }
-
-    private UsuarioModel salvarUsuario(String nome, String email, GeneroEnum genero,
+    private UsuarioModel salvarUsuario(String nome, String email,
                                        String nascimento, String telefone,
                                        String cpf, TipoUsuario permissao) {
         UsuarioModel existente = this.usuarioRepository.findByEmail(email).orElse(null);
@@ -125,7 +76,7 @@ public class UsuariosPadroes implements CommandLineRunner {
         usuario.setNome(nome);
         usuario.setEmail(email);
         usuario.setSenha(this.passwordEncoder.encode("123456"));
-        usuario.setGenero(genero);
+        usuario.setGenero(GeneroEnum.M);
         usuario.setDataNascimento(LocalDate.parse(nascimento));
         usuario.setTelefone(telefone);
         usuario.setCpf(cpf);
@@ -142,29 +93,23 @@ public class UsuariosPadroes implements CommandLineRunner {
 
         Set<UsuarioModel> vets = new HashSet<>();
         vets.add(usuarios.get("veterinario"));
-        vets.add(usuarios.get("veterinario2"));
 
         EspecializacaoModel clinicaGeral = new EspecializacaoModel();
         clinicaGeral.setDescricao("Clínica Geral");
         clinicaGeral.setVeterinarios(vets);
 
-        EspecializacaoModel dermatologia = new EspecializacaoModel();
-        dermatologia.setDescricao("Dermatologia Veterinária");
-        dermatologia.setVeterinarios(Set.of(usuarios.get("veterinario2")));
-
         EspecializacaoModel cardiologia = new EspecializacaoModel();
         cardiologia.setDescricao("Cardiologia Veterinária");
         cardiologia.setVeterinarios(Set.of(usuarios.get("veterinario")));
 
-        this.especializacaoRepository.saveAll(List.of(clinicaGeral, dermatologia, cardiologia));
+        this.especializacaoRepository.saveAll(List.of(clinicaGeral, cardiologia));
     }
 
     private void tiposConsulta(Map<String, UsuarioModel> usuarios) {
         if (this.tipoConsultaRepository.count() > 0) return;
 
         List<UsuarioModel> vets = List.of(
-                usuarios.get("veterinario"),
-                usuarios.get("veterinario2"));
+                usuarios.get("veterinario"));
 
         TipoConsultaModel rotina = new TipoConsultaModel();
         rotina.setNome("Consulta de Rotina");
@@ -185,35 +130,6 @@ public class UsuariosPadroes implements CommandLineRunner {
         vacinacao.setVeterinarios(List.of(usuarios.get("veterinario")));
 
         this.tipoConsultaRepository.saveAll(List.of(emergencia, vacinacao));
-        rotina = this.tipoConsultaRepository.save(rotina);
-        // mockarConsulta(usuarios.get("cliente"), usuarios.get("atendente"), usuarios.get("veterinario"), rotina);
-    }
-
-    private void pet(UsuarioModel cliente) {
-        List<PetModel> petsCliente = this.petRepository.findAllByTutor_Id(cliente.getId());
-        if (!petsCliente.isEmpty()) return;
-        PetModel pet = new PetModel();
-        pet.setTutor(cliente);
-        pet.setStatus(StatusPerfilEnum.A);
-        pet.setGenero(GeneroEnum.F);
-        pet.setDataNascimento(LocalDate.now());
-        pet.setNome("Mel");
-        pet.setRaca("Shitzu");
-        pet.setTipo(TipoAnimalEnum.CACHORRO);
-        this.petRepository.save(pet);
-    }
-
-    private void pagamentos() {
-        List<ConsultaModel> consultas = this.consultaRepository.findAllByPagamentoIsNull();
-        for (ConsultaModel consulta : consultas) {
-            PagamentoModel pagamento = new PagamentoModel();
-            pagamento.setTipoPagamento(TipoPagamentoEnum.PIX);
-            pagamento.setDataLimitePagamento(consulta.getDataConsulta().plusWeeks(2));
-            pagamento.setValorPagamento(consulta.getTipoConsulta() != null ? BigDecimal.valueOf(consulta.getTipoConsulta().getValor()) : BigDecimal.ZERO);
-            pagamento.setEmitidoPor(consulta.getSolicitante());
-            pagamento = this.pagamentoRepository.save(pagamento);
-            consulta.setPagamento(pagamento);
-            this.consultaRepository.save(consulta);
-        }
+        this.tipoConsultaRepository.save(rotina);
     }
 }
