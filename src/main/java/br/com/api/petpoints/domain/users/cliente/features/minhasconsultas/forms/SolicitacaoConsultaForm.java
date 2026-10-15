@@ -16,7 +16,7 @@ public class SolicitacaoConsultaForm {
     @NotNull
     private Long idTipoConsulta;
     private LocalDateTime dataConsulta;
-    private String observacoes;
+    private String observacao;
     @NotNull
     private TipoPagamentoEnum formaPagamento;
 }

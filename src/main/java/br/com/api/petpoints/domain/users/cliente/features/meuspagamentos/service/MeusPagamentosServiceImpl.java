@@ -104,13 +104,14 @@ public class MeusPagamentosServiceImpl implements MeusPagamentosService {
     @Override
     public PagamentoConsultaDto buscarPagamentoPorId(Long idPagamento) {
         PagamentoModel pagamento = this.getPagamentoPorId(idPagamento);
+        ConsultaModel consulta = this.consultaRepository.findByPagamento_Id(idPagamento).orElseThrow(() -> new EntityNotFoundException("Consulta não encontrada para o pagamento Nº " + idPagamento));
         if (!pagamento.getTipoPagamento().equals(TipoPagamentoEnum.PIX)) {
-            return new PagamentoConsultaDto(pagamento);
+            return new PagamentoConsultaDto(pagamento, consulta);
         } else {
             try {
                 MercadoPagoDto.OrderResponse informacoesPagamento = this.pagamentoService.buscarPagamentoPix(pagamento.getId());
                 PagamentoDto.PagamentoPixResponse respostaPix = this.pagamentoService.getPagamentoPixResponse(informacoesPagamento, pagamento);
-                return new PagamentoConsultaDto(pagamento, respostaPix);
+                return new PagamentoConsultaDto(pagamento, respostaPix, consulta);
             } catch (Exception e) {
                 log.error("Ocorreu um erro ao buscar os detalhes do pagamento via PIX desse pagamento! {}", idPagamento);
             }
