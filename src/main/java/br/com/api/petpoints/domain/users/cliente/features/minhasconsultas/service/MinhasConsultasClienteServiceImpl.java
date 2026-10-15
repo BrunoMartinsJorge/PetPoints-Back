@@ -137,7 +137,7 @@ public class MinhasConsultasClienteServiceImpl implements MinhasConsultasCliente
         ConsultaModel consulta = new ConsultaModel();
         consulta.setSolicitante(solicitante);
         consulta.setDataConsulta(form.getDataConsulta());
-        consulta.setObservacoes(form.getObservacoes());
+        consulta.setObservacoes(form.getObservacao());
         consulta.setVeterinario(veterinario);
         consulta.setTipoConsulta(tipoConsulta);
         consulta.setPet(pet);
@@ -222,12 +222,12 @@ public class MinhasConsultasClienteServiceImpl implements MinhasConsultasCliente
         ConsultaModel consulta = this.getConsultaPorId(idConsulta);
         if (consulta.getPagamento() == null) return null;
         if (!consulta.getPagamento().getTipoPagamento().equals(TipoPagamentoEnum.PIX)) {
-            return new PagamentoConsultaDto(consulta.getPagamento());
+            return new PagamentoConsultaDto(consulta.getPagamento(), consulta);
         } else {
             try {
                 MercadoPagoDto.OrderResponse informacoesPagamento = this.pagamentoService.buscarPagamentoPix(consulta.getPagamento().getId());
                 PagamentoDto.PagamentoPixResponse respostaPix = this.pagamentoService.getPagamentoPixResponse(informacoesPagamento, consulta.getPagamento());
-                return new PagamentoConsultaDto(consulta.getPagamento(), respostaPix);
+                return new PagamentoConsultaDto(consulta.getPagamento(), respostaPix, consulta);
             } catch (Exception e) {
                 log.error("Ocorreu um erro ao buscar os detalhes do pagamento via PIX dessa consulta! {}", idConsulta);
             }

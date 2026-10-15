@@ -3,6 +3,7 @@ package br.com.api.petpoints.domain.users.cliente.shared.dto;
 import br.com.api.petpoints.shared.enums.StatusPagamentoEnum;
 import br.com.api.petpoints.shared.enums.TipoPagamentoEnum;
 import br.com.api.petpoints.shared.features.payment.dto.PagamentoDto;
+import br.com.api.petpoints.shared.models.ConsultaModel;
 import br.com.api.petpoints.shared.models.PagamentoModel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -10,6 +11,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -17,11 +19,23 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 public class PagamentoConsultaDto {
 
+    // petConsulta: string;
+    // veterinarioConsulta: string;
+    // dataHoraConsulta: string;
+
     private Long id;
-    private StatusPagamentoEnum status;
+    private Long idConsulta;
+    private StatusPagamentoEnum statusPagamento;
     private BigDecimal valor;
-    private TipoPagamentoEnum formaPagamento;
+    private TipoPagamentoEnum tipoPagamento;
     private PagamentoPixDto pixPagamento;
+    private String tipoConsulta;
+    private Long idVeterinario;
+    private String petConsulta;
+    private String veterinarioConsulta;
+    private LocalDateTime dataHoraConsulta;
+    private boolean atrasado;
+    private String motivoIndeferimento;
 
     public record PagamentoPixDto(
             String ordemId,
@@ -32,20 +46,28 @@ public class PagamentoConsultaDto {
     ) {
     }
 
-    public PagamentoConsultaDto(PagamentoModel pagamento) {
+    public PagamentoConsultaDto(PagamentoModel pagamento, ConsultaModel consulta) {
         this.id = pagamento.getId();
-        this.status = pagamento.getStatusPagamento();
+        this.statusPagamento = pagamento.getStatusPagamento();
         this.valor = pagamento.getValorPagamento();
-        this.formaPagamento = pagamento.getTipoPagamento();
+        this.tipoPagamento = pagamento.getTipoPagamento();
+        this.tipoConsulta = consulta.getTipoConsulta().getNome();
+        this.idVeterinario = consulta.getVeterinario().getId();
+        this.petConsulta = consulta.getPet().getNome();
+        this.veterinarioConsulta = consulta.getVeterinario().getNome();
+        this.dataHoraConsulta = consulta.getDataConsulta();
+        this.atrasado = pagamento.getDataLimitePagamento() != null && pagamento.getDataLimitePagamento().isAfter(LocalDateTime.now());
+        this.motivoIndeferimento = pagamento.getMotivoIndeferimento();
+        this.idConsulta = consulta.getId();
     }
 
     public PagamentoConsultaDto(PagamentoModel pagamento,
-                                PagamentoDto.PagamentoPixResponse apiResponse) {
+                                PagamentoDto.PagamentoPixResponse apiResponse, ConsultaModel consulta) {
 
         this.id = pagamento.getId();
-        this.status = pagamento.getStatusPagamento();
+        this.statusPagamento = pagamento.getStatusPagamento();
         this.valor = pagamento.getValorPagamento();
-        this.formaPagamento = pagamento.getTipoPagamento();
+        this.tipoPagamento = pagamento.getTipoPagamento();
 
         this.pixPagamento = new PagamentoPixDto(
                 apiResponse.orderId(),
@@ -54,5 +76,13 @@ public class PagamentoConsultaDto {
                 apiResponse.ticketUrl(),
                 apiResponse.qrCodeBase64()
         );
+        this.idConsulta = consulta.getId();
+        this.tipoConsulta = consulta.getTipoConsulta().getNome();
+        this.idVeterinario = consulta.getVeterinario().getId();
+        this.petConsulta = consulta.getPet().getNome();
+        this.veterinarioConsulta = consulta.getVeterinario().getNome();
+        this.dataHoraConsulta = consulta.getDataConsulta();
+        this.atrasado = pagamento.getDataLimitePagamento() != null && pagamento.getDataLimitePagamento().isAfter(LocalDateTime.now());
+        this.motivoIndeferimento = pagamento.getMotivoIndeferimento();
     }
 }

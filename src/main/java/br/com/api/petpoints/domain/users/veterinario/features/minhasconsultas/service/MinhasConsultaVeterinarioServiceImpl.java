@@ -12,6 +12,7 @@ import br.com.api.petpoints.shared.enums.TipoMovimentacaoEnum;
 import br.com.api.petpoints.shared.enums.TipoPagamentoEnum;
 import br.com.api.petpoints.shared.enums.TiposNotificacoesEnum;
 import br.com.api.petpoints.shared.exception.custom.IllegalAccessException;
+import br.com.api.petpoints.shared.exception.custom.NegocioException;
 import br.com.api.petpoints.shared.exception.custom.ObjectNotFoundException;
 import br.com.api.petpoints.shared.features.logs.LogsServiceImpl;
 import br.com.api.petpoints.shared.features.notificacoes.controller.NotificacoesController;
@@ -25,8 +26,8 @@ import br.com.api.petpoints.shared.utils.RelatoriosUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
@@ -79,7 +80,7 @@ public class MinhasConsultaVeterinarioServiceImpl implements MinhasConsultaVeter
         if (consultasDoDia.isEmpty())
             return new ConsultaAtualDto();
         if (consultasDoDia.size() > 1)
-            throw new RuntimeException("Duas consultas não podem estar iniciadas ao mesmo tempo!");
+            throw new NegocioException("Duas consultas não podem estar iniciadas ao mesmo tempo!", HttpStatus.CONFLICT);
         return new ConsultaAtualDto(consultasDoDia.getFirst());
     }
 
@@ -87,7 +88,7 @@ public class MinhasConsultaVeterinarioServiceImpl implements MinhasConsultaVeter
     public InformacoesConsultaSelecionadaDto buscarInformacoesConsulta(Long idConsulta, Long idUsuario) {
         ConsultaModel consulta = this.getConsultaPorId(idConsulta);
         if (!consulta.getVeterinario().getId().equals(idUsuario))
-            throw new IllegalArgumentException("Você não é o veterinário responsável por esta consulta!");
+            throw new NegocioException("Você não é o veterinário responsável por esta consulta!", HttpStatus.FORBIDDEN);
         return new InformacoesConsultaSelecionadaDto(consulta);
     }
 
@@ -105,10 +106,10 @@ public class MinhasConsultaVeterinarioServiceImpl implements MinhasConsultaVeter
         List<ConsultaModel> consultasDoDia = this.consultaRepository.findAllByVeterinario_Id(idUsuario).stream()
                 .filter(consulta -> consulta.getStatus().equals(StatusConsultaEnum.INICIADO)).toList();
         if (!consultasDoDia.isEmpty())
-            throw new RuntimeException("Duas consultas não podem estar iniciadas ao mesmo tempo!");
+            throw new NegocioException("Duas consultas não podem estar iniciadas ao mesmo tempo!", HttpStatus.CONFLICT);
         ConsultaModel consulta = this.getConsultaPorId(idConsulta);
         if (consulta.getStatus() != StatusConsultaEnum.APROVADA)
-            throw new RuntimeException("A consulta não pode ser iniciada com o estado: " + consulta.getStatus().getDescricao() + "!");
+            throw new NegocioException("A consulta não pode ser iniciada com o estado: " + consulta.getStatus().getDescricao() + "!");
         consulta.setStatus(StatusConsultaEnum.INICIADO);
         consulta.setIniciadoEm(LocalDateTime.now());
         consulta = this.consultaRepository.save(consulta);
@@ -129,16 +130,16 @@ public class MinhasConsultaVeterinarioServiceImpl implements MinhasConsultaVeter
     public void finalizarConsulta(Long idUsuario, Long idConsulta, FinalizarConsultaForm form) {
         ConsultaModel consulta = this.getConsultaPorId(idConsulta);
         if (consulta.getStatus() != StatusConsultaEnum.INICIADO)
-            throw new RuntimeException("A consulta não pode ser finalizada com o estado: " + consulta.getStatus().getDescricao() + "!");
+            throw new NegocioException("A consulta não pode ser finalizada com o estado: " + consulta.getStatus().getDescricao() + "!");
         if (consulta.getPagamento() != null)
-            throw new RuntimeException("Esta consulta já possui uma cobrança gerada!");
+            throw new NegocioException("Esta consulta já possui uma cobrança gerada!", HttpStatus.CONFLICT);
         if (form == null || form.getResumo() == null || form.getResumo().isBlank())
-            throw new IllegalArgumentException("O resumo da consulta é obrigatório para finalizá-la!");
+            throw new NegocioException("O resumo da consulta é obrigatório para finalizá-la!");
 
         UsuarioModel veterinario = this.getUsuarioPorId(idUsuario);
 
         if (consulta.getVeterinario() != veterinario)
-            throw new IllegalArgumentException("Você não tem permissão para alterar essa consulta!");
+            throw new NegocioException("Você não tem permissão para alterar essa consulta!", HttpStatus.FORBIDDEN);
 
         consulta.setStatus(StatusConsultaEnum.FINALIZADO);
         consulta.setFinalizadoEm(LocalDateTime.now());
@@ -171,9 +172,9 @@ public class MinhasConsultaVeterinarioServiceImpl implements MinhasConsultaVeter
         Map<Long, Integer> quantidadePorProduto = new LinkedHashMap<>();
         for (ItemCobrancaForm item : itens) {
             if (item.getIdProduto() == null)
-                throw new IllegalArgumentException("Informe o produto de todos os itens de cobrança!");
+                throw new NegocioException("Informe o produto de todos os itens de cobrança!");
             if (item.getQuantidade() <= 0)
-                throw new IllegalArgumentException("A quantidade dos itens de cobrança deve ser maior que zero!");
+                throw new NegocioException("A quantidade dos itens de cobrança deve ser maior que zero!");
             quantidadePorProduto.merge(item.getIdProduto(), item.getQuantidade(), Integer::sum);
         }
 
@@ -228,7 +229,7 @@ public class MinhasConsultaVeterinarioServiceImpl implements MinhasConsultaVeter
             case DINHEIRO -> {
                 return this.pagamentoService.criarPagamentoPresencial(pagamento, formaPagamento, valor, consulta.getSolicitante());
             }
-            default -> throw new IllegalArgumentException("Tipo de Pagamento não computado! " + formaPagamento);
+            default -> throw new NegocioException("Tipo de Pagamento não computado: " + formaPagamento);
         }
     }
 
