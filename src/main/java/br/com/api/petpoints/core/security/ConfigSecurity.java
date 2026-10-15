@@ -62,6 +62,8 @@ public class ConfigSecurity {
                         .requestMatchers("/api/pagamentos/webhook").permitAll()
                         .requestMatchers("/api/pagamentos/stripe/webhook").permitAll()
 
+                        .requestMatchers("/actuator/**").permitAll()
+
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)

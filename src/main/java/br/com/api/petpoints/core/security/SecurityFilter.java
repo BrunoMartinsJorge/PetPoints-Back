@@ -41,7 +41,7 @@ public class SecurityFilter extends OncePerRequestFilter {
                 "/pagamentos/webhook",
                 "/pagamentos/stripe/webhook"
         );
-        if (path.contains("/ws") || publicEndpoints.contains(path) || path.startsWith("/arquivos") || path.contains("imagem") || path.contains("/webhook")) {
+        if (path.contains("/ws") || publicEndpoints.contains(path) || path.startsWith("/arquivos") || path.contains("imagem") || path.contains("/webhook") || path.startsWith("/actuator")) {
             filterChain.doFilter(request, response);
             return;
         }
