@@ -19,10 +19,6 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class PagamentoConsultaDto {
 
-    // petConsulta: string;
-    // veterinarioConsulta: string;
-    // dataHoraConsulta: string;
-
     private Long id;
     private Long idConsulta;
     private StatusPagamentoEnum statusPagamento;
@@ -42,7 +38,8 @@ public class PagamentoConsultaDto {
             Long pagamentoId,
             String statusPagamentoOnline,
             String urlPagamento,
-            String qrCodeBase
+            String qrCodeBase,
+            String qrCodeCopiaECola
     ) {
     }
 
@@ -74,7 +71,8 @@ public class PagamentoConsultaDto {
                 apiResponse.pagamentoId(),
                 apiResponse.status(),
                 apiResponse.ticketUrl(),
-                apiResponse.qrCodeBase64()
+                apiResponse.qrCodeBase64(),
+                apiResponse.qrCode()
         );
         this.idConsulta = consulta.getId();
         this.tipoConsulta = consulta.getTipoConsulta().getNome();
