@@ -10,6 +10,7 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -23,6 +24,7 @@ public class PetsDto {
     private GeneroEnum genero;
     private LocalDateTime registradoEm;
     private TutorPetsDto tutor;
+    private UUID imagem;
 
     public PetsDto(PetModel pet) {
         this.id = pet.getId();
@@ -31,6 +33,7 @@ public class PetsDto {
         this.genero = pet.getGenero();
         this.registradoEm = pet.getRegistradoEm();
         this.tutor = new TutorPetsDto(pet.getTutor());
+        this.imagem = pet.getImagem();
     }
 
     public static List<PetsDto> convert(List<PetModel> pets) {

@@ -97,7 +97,7 @@ public class PagamentoService {
         pagamento.setIdPagamentoExterno(order.id());
         pagamento.setTipoPagamento(TipoPagamentoEnum.PIX);
         pagamento.setStatusPagamento(mapearStatus(order.status()));
-        pagamento.gerarDataLimitePagamento();
+        pagamento.setDataLimitePagamento(pagamento.gerarDataLimitePagamento());
         pagamento.setDataPagamento(null);
         pagamento.setMotivoIndeferimento(null);
         pagamento.setAprovadoPor(null);
@@ -161,7 +161,7 @@ public class PagamentoService {
         pagamento.setMotivoIndeferimento(null);
         pagamento.setAprovadoPor(null);
         pagamento.setEmitidoPor(emitidoPor);
-        pagamento.gerarDataLimitePagamento();
+        pagamento.setDataLimitePagamento(pagamento.gerarDataLimitePagamento());
 
         return pagamentoRepository.save(pagamento);
     }
