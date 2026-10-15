@@ -236,7 +236,7 @@ public class MinhasConsultaVeterinarioServiceImpl implements MinhasConsultaVeter
     protected PagamentoModel gerarPagamentoCartao(ConsultaModel consulta, BigDecimal valor) {
         PagamentoModel pagamento = new PagamentoModel();
         pagamento.setValorPagamento(valor);
-        pagamento.gerarDataLimitePagamento();
+        pagamento.setDataLimitePagamento(pagamento.gerarDataLimitePagamento());
         pagamento.setEmitidoPor(consulta.getSolicitante());
         pagamento.setTipoPagamento(TipoPagamentoEnum.CARTAO);
         return this.pagamentoRepository.save(pagamento);
@@ -333,9 +333,6 @@ public class MinhasConsultaVeterinarioServiceImpl implements MinhasConsultaVeter
         return RelatoriosUtils.getBytes(html);
     }
 
-    /**
-     * Carrega os produtos receitados preservando a ordem informada pelo veterinário.
-     */
     private Map<Long, ProdutoModel> buscarProdutosReceitados(List<ItemPrescricaoForm> itens) {
         List<Long> idsProdutos = itens.stream().map(ItemPrescricaoForm::getId).filter(Objects::nonNull).distinct().toList();
         if (idsProdutos.isEmpty()) return new LinkedHashMap<>();

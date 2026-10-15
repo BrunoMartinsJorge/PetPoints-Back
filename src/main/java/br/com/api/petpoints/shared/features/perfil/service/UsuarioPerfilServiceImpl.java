@@ -214,9 +214,11 @@ public class UsuarioPerfilServiceImpl implements UsuarioPerfilService {
         List<AvaliacaoModel> avaliacoesAtendimento = this.atendimentoRepository.findAllByCliente_IdAndStatus(idUsuario, StatusAtendimentoEnum.FINALIZADO).stream().map(AtendimentoModel::getAvaliacao).toList();
         List<MinhasAvaliacoesDto> dto = new ArrayList<>();
         for (AvaliacaoModel avaliacao : avaliacoesConsulta) {
+            if (avaliacao == null) continue;
             dto.add(new MinhasAvaliacoesDto(avaliacao, "CONSULTA"));
         }
         for (AvaliacaoModel avaliacao : avaliacoesAtendimento) {
+            if (avaliacao == null) continue;
             dto.add(new MinhasAvaliacoesDto(avaliacao, "ATENDIMENTO"));
         }
         return dto;

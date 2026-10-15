@@ -18,6 +18,7 @@ import br.com.api.petpoints.shared.repository.ArquivoRepository;
 import br.com.api.petpoints.shared.repository.UsuarioRepository;
 import br.com.api.petpoints.shared.enums.TipoLogEnum;
 import br.com.api.petpoints.shared.features.logs.LogsServiceImpl;
+import br.com.api.petpoints.shared.utils.EmailService;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -48,7 +49,7 @@ public class UsuarioServiceImpl implements UsuarioService {
     private final AuthenticationManager authenticationManager;
     private final LogsServiceImpl logsService;
     private final SpringTemplateEngine templateEngine;
-    private final JavaMailSenderImpl mailSender;
+    private final EmailService emailService;
     private final TokenRecuperarSenhaRepository tokenRecuperarSenhaRepository;
     private final ArquivoRepository arquivoRepository;
 
@@ -189,7 +190,6 @@ public class UsuarioServiceImpl implements UsuarioService {
      *
      * @param email  {@code String} Email para envio de código de confirmação
      */
-    @Override
     public void enviarCodigoAlteracaoSenha(String email) {
         UsuarioModel usuario = this.getUsuarioPorEmail(email);
         String codigo = this.gerarCodigoAlfanumerico();
@@ -198,21 +198,17 @@ public class UsuarioServiceImpl implements UsuarioService {
             context.setVariable("codigo", codigo);
             context.setVariable("usuario", usuario.getNome());
             String htmlTemplate = templateEngine.process("email/codigo_alterar_senha", context);
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true);
-            helper.setTo(email);
-            helper.setSubject("Código de Alteração de Senha");
-            helper.setText(htmlTemplate, true);
-            mailSender.send(message);
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException("Erro ao enviar email");
-        } finally {
+
+            emailService.enviar(email, "Código de Alteração de Senha", htmlTemplate);
+
             TokenRecuperarSenhaModel token = new TokenRecuperarSenhaModel();
             token.setUsuarioModel(usuario);
             token.setExpires_at(LocalDateTime.now().plusMinutes(5));
             token.setToken(codigo);
             this.tokenRecuperarSenhaRepository.save(token);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Erro ao enviar email");
         }
     }
 
